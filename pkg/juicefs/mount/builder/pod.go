@@ -198,7 +198,7 @@ func (r *Builder) getWarmupCommand() string {
 			klog.V(1).Infof("getWarmupCommand: warmup %s", p)
 			paths = append(paths, p)
 		}
-		cmd = fmt.Sprintf("for p in %s;do for i in {1..5};do echo \"try: $p, times: $i\";if [ -d \"$p\" ]; then echo \"warmup started: $p\";juicefs warmup $p;if [ $? -eq 0 ]; then break;else echo \"warmup failed: $p\";sleep $i;fi;else echo \"path not ready: $p\";sleep $i;fi;done;done&&tail -f /dev/null",
+		cmd = fmt.Sprintf("for p in %s;do i=1;while [ $i -le 5 ];do echo \"try: $p, times: $i\";if [ -d \"$p\" ]; then echo \"warmup started: $p\";juicefs warmup $p;if [ $? -eq 0 ]; then break;else echo \"warmup failed: $p\";sleep $i;fi;else echo \"path not ready: $p\";sleep $i;fi;i=$((i+1));done;done && tail -f /dev/null",
 			strings.Join(paths, " "))
 	} else {
 		klog.V(1).Infof("getWarmupCommand: no need warmup")
