@@ -315,6 +315,19 @@ func (j *juicefs) JfsMount(ctx context.Context, volumeID string, target string, 
 	if err != nil {
 		return nil, err
 	}
+
+	pv, err := j.GetPersistentVolume(ctx, volumeID)
+	if err == nil {
+		if warmupPath, ok := pv.Annotations["warmupPath"]; ok {
+			klog.V(1).Infof("JfsMount: volume_id %s, warmupPath: %s.", volumeID, warmupPath)
+			jfsSetting.WarmupPath = strings.Split(warmupPath, ":")
+		} else {
+			klog.V(1).Infof("JfsMount: volume_id %s, without warmupPath.", volumeID)
+		}
+	} else {
+		klog.V(1).Infof("JfsMount: failed to get persistentVolume volume_id %s", volumeID)
+	}
+
 	appInfo, err := config.ParseAppInfo(volCtx)
 	if err != nil {
 		return nil, err

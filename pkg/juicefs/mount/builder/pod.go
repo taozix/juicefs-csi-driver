@@ -50,6 +50,9 @@ func (r *Builder) NewMountPod(podName string) *corev1.Pod {
 	pod.Spec.Volumes = append(pod.Spec.Volumes, mountVolumes...)
 	pod.Spec.Containers[0].VolumeMounts = append(pod.Spec.Containers[0].VolumeMounts, mountVolumeMounts...)
 
+	// add warmup path
+	pod.Spec.Containers[1].VolumeMounts = append(pod.Spec.Containers[0].VolumeMounts, mountVolumeMounts...)
+
 	pod.Name = podName
 	pod.Spec.ServiceAccountName = r.jfsSetting.ServiceAccountName
 	controllerutil.AddFinalizer(pod, config.Finalizer)
@@ -61,6 +64,7 @@ func (r *Builder) NewMountPod(podName string) *corev1.Pod {
 	}}
 	pod.Spec.Containers[0].Resources = resourceRequirements
 	pod.Spec.Containers[0].Command = []string{"sh", "-c", cmd}
+	pod.Spec.Containers[1].Command = []string{"tail", "-f", "/dev/null"}
 	pod.Spec.Containers[0].Lifecycle = &corev1.Lifecycle{
 		PreStop: &corev1.Handler{
 			Exec: &corev1.ExecAction{Command: []string{"sh", "-c", fmt.Sprintf(

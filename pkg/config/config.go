@@ -77,6 +77,7 @@ const (
 	UniqueId             = "juicefs-uniqueid"
 	CleanCache           = "juicefs-clean-cache"
 	MountContainerName   = "jfs-mount"
+	WarmupContainerName  = "jfs-warmup"
 	JuiceFSMountPod      = "juicefs-mountpod"
 	JobTypeValue         = "juicefs-job"
 

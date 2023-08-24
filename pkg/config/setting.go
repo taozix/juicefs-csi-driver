@@ -80,6 +80,9 @@ type JfsSetting struct {
 	SubPath    string   // subPath which is to be created or deleted
 	SecretName string   // secret name which is set env in pod
 
+	// warmup
+	WarmupPath []string
+
 	Attr PodAttr
 }
 

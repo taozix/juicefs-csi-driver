@@ -267,7 +267,9 @@ func (r *Builder) generatePodTemplate() *corev1.Pod {
 			Annotations: make(map[string]string),
 		},
 		Spec: corev1.PodSpec{
-			Containers:         []corev1.Container{r.genCommonContainer()},
+			Containers: []corev1.Container{
+				r.genCommonContainer(config.MountContainerName),
+				r.genCommonContainer(config.WarmupContainerName)},
 			NodeName:           config.NodeName,
 			HostNetwork:        r.jfsSetting.Attr.HostNetwork,
 			HostAliases:        r.jfsSetting.Attr.HostAliases,
@@ -283,11 +285,11 @@ func (r *Builder) generatePodTemplate() *corev1.Pod {
 	}
 }
 
-func (r *Builder) genCommonContainer() corev1.Container {
+func (r *Builder) genCommonContainer(name string) corev1.Container {
 	isPrivileged := true
 	rootUser := int64(0)
 	return corev1.Container{
-		Name:  config.MountContainerName,
+		Name:  name,
 		Image: r.jfsSetting.Attr.Image,
 		SecurityContext: &corev1.SecurityContext{
 			Privileged: &isPrivileged,
