@@ -194,7 +194,7 @@ func (r *Builder) getWarmupCommand() string {
 	paths := []string{}
 	if len(r.jfsSetting.WarmupPath) > 0 {
 		for _, v := range r.jfsSetting.WarmupPath {
-			p := path.Join("/", config.PodMountBase, r.jfsSetting.VolumeId, v)
+			p := path.Join("/", r.jfsSetting.MountPath, v)
 			klog.V(1).Infof("getWarmupCommand: warmup %s", p)
 			paths = append(paths, p)
 		}
@@ -203,7 +203,7 @@ func (r *Builder) getWarmupCommand() string {
 	} else {
 		klog.V(1).Infof("getWarmupCommand: no need warmup")
 	}
-	return util.QuoteForShell(cmd)
+	return cmd
 }
 
 func (r *Builder) getCommand() string {
