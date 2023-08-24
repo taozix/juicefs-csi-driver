@@ -35,6 +35,7 @@ func (r *Builder) NewMountPod(podName string) *corev1.Pod {
 	resourceRequirements := r.jfsSetting.Resources
 
 	cmd := r.getCommand()
+	wcmd := r.getWarmupCommand()
 
 	pod := r.generateJuicePod()
 
@@ -64,7 +65,7 @@ func (r *Builder) NewMountPod(podName string) *corev1.Pod {
 	}}
 	pod.Spec.Containers[0].Resources = resourceRequirements
 	pod.Spec.Containers[0].Command = []string{"sh", "-c", cmd}
-	pod.Spec.Containers[1].Command = []string{"tail", "-f", "/dev/null"}
+	pod.Spec.Containers[1].Command = []string{"sh", "-c", wcmd}
 	pod.Spec.Containers[0].Lifecycle = &corev1.Lifecycle{
 		PreStop: &corev1.Handler{
 			Exec: &corev1.ExecAction{Command: []string{"sh", "-c", fmt.Sprintf(
@@ -186,6 +187,23 @@ func (r *Builder) genHostPathVolumes() (volumes []corev1.Volume, volumeMounts []
 		})
 	}
 	return
+}
+
+func (r *Builder) getWarmupCommand() string {
+	cmd := "tail -f /dev/null"
+	paths := []string{}
+	if len(r.jfsSetting.WarmupPath) > 0 {
+		for _, v := range r.jfsSetting.WarmupPath {
+			p := path.Join("/", config.PodMountBase, r.jfsSetting.VolumeId, v)
+			klog.V(1).Infof("getWarmupCommand: warmup %s", p)
+			paths = append(paths, p)
+		}
+		cmd = fmt.Sprintf("for p in %s;do for i in {1..5};do echo \"try: $p, times: $i\";if [ -d \"$p\" ]; then echo \"warmup started: $p\";juicefs warmup $p;if [ $? -eq 0 ]; then break;else echo \"warmup failed: $p\";sleep $i;fi;else echo \"path not ready: $p\";sleep $i;fi;done;done&&tail -f /dev/null",
+			strings.Join(paths, " "))
+	} else {
+		klog.V(1).Infof("getWarmupCommand: no need warmup")
+	}
+	return util.QuoteForShell(cmd)
 }
 
 func (r *Builder) getCommand() string {
